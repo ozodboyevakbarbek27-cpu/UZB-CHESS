@@ -1,0 +1,1939 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+
+<title>UZB CHESS</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+
+<style>
+*{
+  box-sizing:border-box;
+  -webkit-tap-highlight-color:transparent;
+}
+
+body{
+  margin:0;
+  background:#080a0e;
+  color:white;
+  font-family:Arial,sans-serif;
+}
+
+.app{
+  max-width:720px;
+  margin:auto;
+  min-height:100vh;
+  padding-bottom:30px;
+}
+
+header{
+  text-align:center;
+  padding:22px 10px;
+  background:#11151b;
+  border-bottom:1px solid #292f38;
+}
+
+.logo{
+  font-size:32px;
+  font-weight:900;
+}
+
+.logo span{
+  color:#e5b342;
+}
+
+.sub{
+  margin-top:6px;
+  color:#858d98;
+}
+
+.page{
+  display:none;
+  padding:14px;
+}
+
+.page.active{
+  display:block;
+}
+
+.card{
+  background:#151a20;
+  border:1px solid #2b323c;
+  border-radius:20px;
+  padding:18px;
+  margin-bottom:14px;
+}
+
+.menu{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+
+button{
+  border:1px solid #303741;
+  background:#171d24;
+  color:white;
+  border-radius:15px;
+  padding:15px;
+  font-size:16px;
+  cursor:pointer;
+}
+
+button:active{
+  transform:scale(.97);
+}
+
+.menu button{
+  min-height:115px;
+}
+
+.menu button:first-child{
+  border-color:#e5b342;
+}
+
+.icon{
+  font-size:32px;
+  display:block;
+  margin-bottom:8px;
+}
+
+.back{
+  margin-bottom:12px;
+}
+
+.timegrid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:9px;
+}
+
+.time.selected{
+  border-color:#e5b342;
+  color:#e5b342;
+  background:#30240c;
+}
+
+.primary{
+  width:100%;
+  margin-top:15px;
+  background:#e5b342;
+  color:#111;
+  font-weight:bold;
+}
+
+input{
+  width:100%;
+  margin-top:10px;
+  padding:15px;
+  border-radius:12px;
+  border:1px solid #303741;
+  background:#0d1116;
+  color:white;
+  font-size:16px;
+}
+
+.players{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:9px;
+}
+
+.player{
+  background:#151a20;
+  border:1px solid #2b323c;
+  border-radius:16px;
+  padding:12px;
+}
+
+.player.active{
+  border-color:#e5b342;
+  box-shadow:0 0 18px #e5b34222;
+}
+
+.pname{
+  color:#aeb4bd;
+}
+
+.clock{
+  color:#e5b342;
+  font-size:28px;
+  font-weight:bold;
+  margin-top:4px;
+}
+
+.status{
+  text-align:center;
+  min-height:42px;
+  padding:10px 0;
+  color:#e5b342;
+  font-weight:bold;
+  font-size:19px;
+}
+
+/* SHAXMAT TAXTASI */
+
+#board{
+  width:100%;
+  aspect-ratio:1;
+  display:grid;
+  grid-template-columns:repeat(8,1fr);
+  border:6px solid #252b32;
+  border-radius:7px;
+  overflow:hidden;
+}
+
+.square{
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  aspect-ratio:1;
+}
+
+.light{
+  background:#ead5a4;
+}
+
+.dark{
+  background:#765a3a;
+}
+
+.piece{
+  font-size:clamp(39px,11vw,78px);
+  line-height:1;
+  user-select:none;
+  z-index:2;
+  filter:drop-shadow(0 4px 3px #0008);
+}
+
+.wp{
+  color:white;
+  text-shadow:0 2px 3px #555;
+}
+
+.bp{
+  color:#111;
+  text-shadow:0 2px 2px #fff5;
+}
+
+.selected{
+  box-shadow:inset 0 0 0 5px #e5b342;
+}
+
+.possible:after{
+  content:"";
+  width:20%;
+  height:20%;
+  border-radius:50%;
+  background:#e5b342;
+  position:absolute;
+}
+
+.capture:after{
+  content:"";
+  position:absolute;
+  inset:5px;
+  border:4px solid #e5b342;
+  border-radius:50%;
+}
+
+.incheck{
+  box-shadow:
+    inset 0 0 0 5px #e34d4d,
+    inset 0 0 30px #e34d4d55;
+}
+
+.coord{
+  position:absolute;
+  font-size:10px;
+  font-weight:bold;
+  opacity:.65;
+  z-index:3;
+}
+
+.rank{
+  left:3px;
+  top:2px;
+}
+
+.file{
+  right:3px;
+  bottom:2px;
+}
+
+.controls{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:7px;
+  margin-top:10px;
+}
+
+.controls button{
+  padding:13px 3px;
+  font-size:12px;
+}
+
+.moves{
+  margin-top:12px;
+  padding:13px;
+  background:#11161c;
+  border:1px solid #292f38;
+  border-radius:15px;
+  max-height:180px;
+  overflow:auto;
+}
+
+.move{
+  padding:5px 0;
+  border-bottom:1px solid #20262d;
+  color:#b0b6bf;
+}
+
+.room{
+  text-align:center;
+  color:#e5b342;
+  font-size:32px;
+  font-weight:bold;
+  letter-spacing:5px;
+  padding:15px;
+}
+
+.center{
+  text-align:center;
+}
+
+.small{
+  color:#9299a3;
+  line-height:1.5;
+}
+
+.online{
+  color:#63d28d;
+}
+
+.local{
+  color:#63d28d;
+}
+
+@media(max-width:400px){
+  .piece{
+    font-size:34px;
+  }
+
+  .controls button{
+    font-size:10px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<header>
+  <div class="logo">♟ UZB <span>CHESS</span></div>
+  <div class="sub">Telegram Chess Mini App</div>
+</header>
+
+
+<!-- ================= HOME ================= -->
+
+<section id="home" class="page active">
+
+  <div class="card">
+    <h2>♟️ Chess Arena</h2>
+
+    <p class="small">
+      Do‘stingiz bilan LOCAL yoki ONLINE shaxmat o‘ynang.
+    </p>
+  </div>
+
+  <div class="menu">
+
+    <button onclick="openSetup('local')">
+      <span class="icon">👥</span>
+      <b>LOCAL</b>
+      <br>
+      <small>2 kishi — bitta telefon</small>
+    </button>
+
+    <button onclick="openSetup('online')">
+      <span class="icon">🌐</span>
+      <b>ONLINE</b>
+      <br>
+      <small>Do‘st bilan online</small>
+    </button>
+
+    <button onclick="showPage('rules')">
+      <span class="icon">📖</span>
+      <b>Qoidalar</b>
+    </button>
+
+    <button onclick="showPage('about')">
+      <span class="icon">🏆</span>
+      <b>Chess Arena</b>
+    </button>
+
+  </div>
+
+</section>
+
+
+<!-- ================= SETUP ================= -->
+
+<section id="setup" class="page">
+
+<button class="back" onclick="showPage('home')">
+← Menyu
+</button>
+
+<div class="card">
+
+<h2 id="setupTitle">
+⚙️ O‘yin vaqti
+</h2>
+
+<p id="setupHint" class="small"></p>
+
+<div class="timegrid">
+
+<button class="time selected"
+onclick="selectTime(600,this)">
+🎯 10 daqiqa
+</button>
+
+<button class="time"
+onclick="selectTime(60,this)">
+⚡ 1 daqiqa
+</button>
+
+<button class="time"
+onclick="selectTime(180,this)">
+⚡ 3 daqiqa
+</button>
+
+<button class="time"
+onclick="selectTime(300,this)">
+🔥 5 daqiqa
+</button>
+
+<button class="time"
+onclick="selectTime(900,this)">
+🧠 15 daqiqa
+</button>
+
+<button class="time"
+onclick="selectTime(1800,this)">
+♟️ 30 daqiqa
+</button>
+
+<button class="time"
+onclick="selectTime(0,this)">
+♾️ Cheksiz
+</button>
+
+<button class="time"
+onclick="customTime(this)">
+⚙️ O‘zim
+</button>
+
+</div>
+
+<div id="custom" style="display:none">
+<input
+id="customMinutes"
+type="number"
+min="1"
+max="180"
+placeholder="Daqiqa">
+</div>
+
+<button class="primary"
+onclick="continueSetup()">
+Davom etish →
+</button>
+
+</div>
+
+</section>
+
+
+<!-- ================= ONLINE ================= -->
+
+<section id="onlineLobby" class="page">
+
+<button class="back" onclick="showPage('home')">
+← Menyu
+</button>
+
+<div class="card center">
+
+<h2>🌐 Online o‘yin</h2>
+
+<p class="small">
+Xona yarating yoki do‘stingiz yuborgan kod orqali xonaga kiring.
+</p>
+
+<button class="primary"
+onclick="createRoom()">
+🆕 Xona yaratish
+</button>
+
+<hr style="border-color:#252b32;margin:20px 0">
+
+<input
+id="joinCode"
+placeholder="Xona kodini kiriting">
+
+<button class="primary"
+onclick="joinRoom()">
+🚪 Xonaga kirish
+</button>
+
+<div id="onlineMsg"
+class="small"
+style="margin-top:12px">
+</div>
+
+</div>
+
+</section>
+
+
+<!-- ================= ROOM ================= -->
+
+<section id="room" class="page">
+
+<div class="card center">
+
+<h2>🔑 Xona kodi</h2>
+
+<div id="roomCode" class="room">
+------
+</div>
+
+<button onclick="copyRoom()">
+📋 Kodni nusxalash
+</button>
+
+<p class="small">
+Kodini do‘stingizga yuboring.
+U ONLINE → Xonaga kirish orqali kodni kiritadi.
+</p>
+
+<div id="roomStatus"
+class="online">
+⏳ Do‘st kutilmoqda...
+</div>
+
+</div>
+
+</section>
+
+
+<!-- ================= GAME ================= -->
+
+<section id="game" class="page">
+
+<div style="
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:10px;
+">
+
+<div style="font-size:28px;font-weight:bold">
+♟ Chess
+</div>
+
+<div id="modeLabel" class="local">
+● LOCAL
+</div>
+
+</div>
+
+
+<div class="players">
+
+<div id="blackPlayer" class="player">
+
+<div class="pname">
+⚫ Qora
+</div>
+
+<div id="blackClock" class="clock">
+∞
+</div>
+
+</div>
+
+
+<div id="whitePlayer" class="player">
+
+<div class="pname">
+⚪ Oq
+</div>
+
+<div id="whiteClock" class="clock">
+∞
+</div>
+
+</div>
+
+</div>
+
+
+<div id="status" class="status">
+⚪ Oq yuradi
+</div>
+
+
+<div id="board"></div>
+
+
+<div class="controls">
+
+<button onclick="undoLocal()">
+↩️ Orqaga
+</button>
+
+<button onclick="newGame()">
+🔄 Yangi
+</button>
+
+<button onclick="flipBoard()">
+🔃 Taxta
+</button>
+
+<button onclick="leaveGame()">
+🏠 Menyu
+</button>
+
+</div>
+
+
+<div class="moves">
+
+<b>📜 Yurishlar</b>
+
+<div id="moveList"></div>
+
+</div>
+
+</section>
+
+
+<!-- ================= RULES ================= -->
+
+<section id="rules" class="page">
+
+<button onclick="showPage('home')">
+← Menyu
+</button>
+
+<div class="card">
+<h2>♙ Piyoda</h2>
+<p class="small">
+Oldinga yuradi, diagonal bo‘yicha dona oladi.
+</p>
+</div>
+
+<div class="card">
+<h2>♘ Ot</h2>
+<p class="small">
+L shaklida yuradi va boshqa donalar ustidan sakray oladi.
+</p>
+</div>
+
+<div class="card">
+<h2>♗ Fil</h2>
+<p class="small">
+Diagonal bo‘ylab yuradi.
+</p>
+</div>
+
+<div class="card">
+<h2>♖ Rux</h2>
+<p class="small">
+Vertikal yoki gorizontal yuradi.
+</p>
+</div>
+
+<div class="card">
+<h2>♕ Farzin</h2>
+<p class="small">
+Vertikal, gorizontal va diagonal yuradi.
+</p>
+</div>
+
+<div class="card">
+<h2>♔ Shoh</h2>
+<p class="small">
+Bir katak yuradi. Shoh-mat bo‘lsa o‘yin tugaydi.
+</p>
+</div>
+
+</section>
+
+
+<!-- ================= ABOUT ================= -->
+
+<section id="about" class="page">
+
+<button onclick="showPage('home')">
+← Menyu
+</button>
+
+<div class="card">
+
+<h2>🏆 CHESS ARENA</h2>
+
+<p class="small">
+
+♟ Haqiqiy shaxmat yurishlari<br><br>
+
+👑 Shoh-mat<br><br>
+
+🤝 Durang<br><br>
+
+♔ Rokirovka<br><br>
+
+♙ Farzinga aylanish<br><br>
+
+⏱️ Vaqtli o‘yin<br><br>
+
+♾️ Cheksiz vaqt<br><br>
+
+🌐 Online xona
+
+</p>
+
+</div>
+
+</section>
+
+</div>
+
+
+<script>
+
+/* =====================================
+   UMUMIY
+===================================== */
+
+let selectedTime = 600;
+let isCustom = false;
+let setupMode = "local";
+
+
+function showPage(id){
+
+document
+.querySelectorAll(".page")
+.forEach(x=>x.classList.remove("active"));
+
+document
+.getElementById(id)
+.classList.add("active");
+
+window.scrollTo(0,0);
+
+}
+
+
+function openSetup(mode){
+
+setupMode = mode;
+
+document
+.getElementById("setupTitle")
+.textContent =
+mode === "online"
+? "🌐 Online o‘yin"
+: "⚙️ Local o‘yin";
+
+document
+.getElementById("setupHint")
+.textContent =
+mode === "online"
+? "Vaqtni tanlang va keyin xona yarating."
+: "Ikki kishi bitta telefonda o‘ynaydi.";
+
+showPage("setup");
+
+}
+
+
+/* =====================================
+   VAQT
+===================================== */
+
+function selectTime(sec,btn){
+
+selectedTime = sec;
+isCustom = false;
+
+document
+.querySelectorAll(".time")
+.forEach(x=>x.classList.remove("selected"));
+
+btn.classList.add("selected");
+
+document.getElementById("custom").style.display="none";
+
+}
+
+
+function customTime(btn){
+
+isCustom=true;
+
+document
+.querySelectorAll(".time")
+.forEach(x=>x.classList.remove("selected"));
+
+btn.classList.add("selected");
+
+document.getElementById("custom").style.display="block";
+
+}
+
+
+function getTime(){
+
+if(!isCustom)
+return selectedTime;
+
+let m =
+parseInt(
+document.getElementById("customMinutes").value
+);
+
+if(!m || m<1 || m>180){
+
+alert("1 dan 180 gacha daqiqa kiriting.");
+
+return null;
+
+}
+
+return m*60;
+
+}
+
+
+function continueSetup(){
+
+let t=getTime();
+
+if(t===null)
+return;
+
+selectedTime=t;
+
+if(setupMode==="local")
+startLocal();
+
+else
+showPage("onlineLobby");
+
+}
+
+
+/* =====================================
+   CHESS
+===================================== */
+
+let chess = new Chess();
+
+let gameMode="local";
+
+let boardFlipped=false;
+
+let selectedSquare=null;
+
+let gameActive=false;
+
+let whiteTime=0;
+
+let blackTime=0;
+
+let timer=null;
+
+let myColor=null;
+
+let peer=null;
+
+let conn=null;
+
+let roomId=null;
+
+let isHost=false;
+
+
+const symbols={
+
+w:{
+p:"♙",
+n:"♘",
+b:"♗",
+r:"♖",
+q:"♕",
+k:"♔"
+},
+
+b:{
+p:"♟",
+n:"♞",
+b:"♝",
+r:"♜",
+q:"♛",
+k:"♚"
+}
+
+};
+
+
+/* =====================================
+   LOCAL
+===================================== */
+
+function startLocal(){
+
+cleanupOnline();
+
+gameMode="local";
+
+chess=new Chess();
+
+boardFlipped=false;
+
+selectedSquare=null;
+
+whiteTime=selectedTime;
+
+blackTime=selectedTime;
+
+gameActive=true;
+
+document.getElementById("modeLabel").textContent="● LOCAL";
+
+document.getElementById("modeLabel").className="local";
+
+showPage("game");
+
+renderBoard();
+
+updateUI();
+
+updateMoves();
+
+startTimer();
+
+}
+
+
+/* =====================================
+   TAHTA
+===================================== */
+
+function renderBoard(){
+
+const el=document.getElementById("board");
+
+el.innerHTML="";
+
+const b=chess.board();
+
+for(let dr=0;dr<8;dr++){
+
+for(let dc=0;dc<8;dc++){
+
+let r=boardFlipped ? 7-dr : dr;
+
+let c=boardFlipped ? 7-dc : dc;
+
+const sq=document.createElement("div");
+
+sq.className =
+((r+c)%2===0
+?"square light"
+:"square dark");
+
+
+const name =
+String.fromCharCode(97+c)+(8-r);
+
+
+if(selectedSquare===name)
+sq.classList.add("selected");
+
+
+if(selectedSquare){
+
+const moves =
+chess.moves({
+square:selectedSquare,
+verbose:true
+});
+
+const m =
+moves.find(x=>x.to===name);
+
+if(m)
+sq.classList.add(
+m.captured
+?"capture"
+:"possible"
+);
+
+}
+
+
+const piece=b[r][c];
+
+
+if(piece){
+
+const p=document.createElement("span");
+
+p.className =
+"piece "+
+(piece.color==="w"
+?"wp"
+:"bp");
+
+p.textContent =
+symbols[piece.color][piece.type];
+
+sq.appendChild(p);
+
+}
+
+
+if(dr===0){
+
+const rank=document.createElement("span");
+
+rank.className="coord rank";
+
+rank.textContent=8-r;
+
+sq.appendChild(rank);
+
+}
+
+
+if(dr===7){
+
+const file=document.createElement("span");
+
+file.className="coord file";
+
+file.textContent=
+String.fromCharCode(97+c);
+
+sq.appendChild(file);
+
+}
+
+
+if(
+piece &&
+piece.type==="k" &&
+chess.in_check() &&
+piece.color===chess.turn()
+){
+
+sq.classList.add("incheck");
+
+}
+
+
+sq.onclick=()=>clickSquare(name);
+
+el.appendChild(sq);
+
+}
+
+}
+
+}
+
+
+/* =====================================
+   KATAK
+===================================== */
+
+function clickSquare(name){
+
+if(!gameActive)
+return;
+
+const turn=chess.turn();
+
+
+if(
+gameMode==="online" &&
+myColor!==turn
+)
+return;
+
+
+const piece=chess.get(name);
+
+
+if(selectedSquare){
+
+const moves =
+chess.moves({
+square:selectedSquare,
+verbose:true
+});
+
+const move =
+moves.find(x=>x.to===name);
+
+
+if(move){
+
+doMove(selectedSquare,name);
+
+return;
+
+}
+
+
+if(
+piece &&
+piece.color===turn
+){
+
+selectedSquare=name;
+
+renderBoard();
+
+return;
+
+}
+
+
+selectedSquare=null;
+
+renderBoard();
+
+return;
+
+}
+
+
+if(
+piece &&
+piece.color===turn
+){
+
+selectedSquare=name;
+
+renderBoard();
+
+}
+
+}
+
+
+/* =====================================
+   YURISH
+===================================== */
+
+function doMove(from,to){
+
+const move =
+chess.move({
+from:from,
+to:to,
+promotion:"q"
+});
+
+if(!move)
+return;
+
+selectedSquare=null;
+
+renderBoard();
+
+updateUI();
+
+updateMoves();
+
+checkGameEnd();
+
+
+if(gameMode==="online")
+sendState();
+
+}
+
+
+/* =====================================
+   UNDO
+===================================== */
+
+function undoLocal(){
+
+if(gameMode==="online"){
+
+alert(
+"Online o‘yinda Orqaga funksiyasi o‘chirilgan."
+);
+
+return;
+
+}
+
+chess.undo();
+
+renderBoard();
+
+updateUI();
+
+updateMoves();
+
+}
+
+
+/* =====================================
+   YANGI
+===================================== */
+
+function newGame(){
+
+if(gameMode==="online"){
+
+if(!isHost){
+
+alert(
+"Online yangi o‘yinni xona egasi boshlaydi."
+);
+
+return;
+
+}
+
+chess=new Chess();
+
+whiteTime=selectedTime;
+
+blackTime=selectedTime;
+
+gameActive=true;
+
+renderBoard();
+
+updateUI();
+
+updateMoves();
+
+sendState();
+
+return;
+
+}
+
+startLocal();
+
+}
+
+
+/* =====================================
+   TAHTANI AYLANTRISH
+===================================== */
+
+function flipBoard(){
+
+boardFlipped=!boardFlipped;
+
+renderBoard();
+
+}
+
+
+/* =====================================
+   MENYU
+===================================== */
+
+function leaveGame(){
+
+gameActive=false;
+
+clearInterval(timer);
+
+cleanupOnline();
+
+showPage("home");
+
+}
+
+
+/* =====================================
+   TIMER
+===================================== */
+
+function startTimer(){
+
+clearInterval(timer);
+
+if(selectedTime===0){
+
+updateClocks();
+
+return;
+
+}
+
+
+timer=setInterval(()=>{
+
+if(!gameActive)
+return;
+
+
+if(chess.turn()==="w")
+whiteTime--;
+
+else
+blackTime--;
+
+
+if(whiteTime<=0){
+
+whiteTime=0;
+
+gameActive=false;
+
+clearInterval(timer);
+
+document.getElementById("status")
+.textContent=
+"⏱️ Oq vaqti tugadi — Qora g‘alaba!";
+
+}
+
+
+if(blackTime<=0){
+
+blackTime=0;
+
+gameActive=false;
+
+clearInterval(timer);
+
+document.getElementById("status")
+.textContent=
+"⏱️ Qora vaqti tugadi — Oq g‘alaba!";
+
+}
+
+
+if(gameMode==="online")
+sendClock();
+
+
+updateClocks();
+
+},1000);
+
+}
+
+
+function updateClocks(){
+
+document.getElementById("whiteClock")
+.textContent =
+selectedTime===0
+?"∞"
+:formatTime(whiteTime);
+
+
+document.getElementById("blackClock")
+.textContent =
+selectedTime===0
+?"∞"
+:formatTime(blackTime);
+
+}
+
+
+function formatTime(s){
+
+let m=Math.floor(Math.max(0,s)/60);
+
+let x=Math.max(0,s)%60;
+
+return m+":"+(x<10?"0":"")+x;
+
+}
+
+
+/* =====================================
+   UI
+===================================== */
+
+function updateUI(){
+
+document
+.getElementById("whitePlayer")
+.classList.toggle(
+"active",
+chess.turn()==="w"
+);
+
+document
+.getElementById("blackPlayer")
+.classList.toggle(
+"active",
+chess.turn()==="b"
+);
+
+
+let status;
+
+
+if(chess.in_check()){
+
+status =
+chess.turn()==="w"
+?"⚠️ Oqga SHOH!"
+:"⚠️ Qoraga SHOH!";
+
+}else{
+
+status =
+chess.turn()==="w"
+?"⚪ Oq yuradi"
+:"⚫ Qora yuradi";
+
+}
+
+
+if(
+gameMode==="online" &&
+myColor
+){
+
+status +=
+myColor===chess.turn()
+?" • Sizning navbatingiz"
+:" • Raqib navbati";
+
+}
+
+
+document.getElementById("status")
+.textContent=status;
+
+updateClocks();
+
+}
+
+
+function updateMoves(){
+
+const el=document.getElementById("moveList");
+
+el.innerHTML="";
+
+const h=chess.history();
+
+for(let i=0;i<h.length;i+=2){
+
+const d=document.createElement("div");
+
+d.className="move";
+
+d.innerHTML=
+"<b>"+(Math.floor(i/2)+1)+".</b> "+
+(h[i]||"")+" "+
+(h[i+1]||"");
+
+el.appendChild(d);
+
+}
+
+el.scrollTop=el.scrollHeight;
+
+}
+
+
+/* =====================================
+   O‘YIN TUGASHI
+===================================== */
+
+function checkGameEnd(){
+
+if(!chess.game_over())
+return;
+
+gameActive=false;
+
+clearInterval(timer);
+
+
+if(chess.in_check()){
+
+const winner =
+chess.turn()==="w"
+?"⚫ Qora"
+:"⚪ Oq";
+
+document.getElementById("status")
+.textContent=
+"👑 SHOH-MAT! "+
+winner+
+" g‘alaba qildi!";
+
+}else{
+
+document.getElementById("status")
+.textContent=
+"🤝 Durang!";
+
+}
+
+}
+
+
+/* =====================================
+   ONLINE ROOM
+===================================== */
+
+function randomRoom(){
+
+return Math
+.random()
+.toString(36)
+.substring(2,8)
+.toUpperCase();
+
+}
+
+
+function createRoom(){
+
+cleanupOnline();
+
+gameMode="online";
+
+isHost=true;
+
+myColor="w";
+
+roomId=randomRoom();
+
+document.getElementById("roomCode")
+.textContent=roomId;
+
+document.getElementById("roomStatus")
+.textContent=
+"⏳ Do‘st kutilmoqda...";
+
+
+showPage("room");
+
+
+peer =
+new Peer("chess-arena-"+roomId);
+
+
+peer.on("connection",(c)=>{
+
+conn=c;
+
+
+conn.on("open",()=>{
+
+document.getElementById("roomStatus")
+.textContent=
+"🟢 Do‘st qo‘shildi!";
+
+startOnlineGame();
+
+});
+
+
+conn.on("data",handleData);
+
+
+conn.on("close",()=>{
+
+gameActive=false;
+
+alert("Raqib o‘yindan chiqdi.");
+
+});
+
+});
+
+
+peer.on("error",()=>{
+
+document.getElementById("roomStatus")
+.textContent=
+"❌ Xona ulanishida xatolik.";
+
+});
+
+}
+
+
+/* =====================================
+   ONLINE JOIN
+===================================== */
+
+function joinRoom(){
+
+const code =
+(
+document.getElementById("joinCode")
+.value||""
+)
+.trim()
+.toUpperCase();
+
+
+if(code.length!==6){
+
+alert("6 xonali kod kiriting.");
+
+return;
+
+}
+
+
+cleanupOnline();
+
+gameMode="online";
+
+isHost=false;
+
+myColor="b";
+
+roomId=code;
+
+
+document.getElementById("onlineMsg")
+.textContent=
+"⏳ Ulanmoqda...";
+
+
+peer=new Peer();
+
+
+peer.on("open",()=>{
+
+conn =
+peer.connect(
+"chess-arena-"+code,
+{
+reliable:true
+}
+);
+
+
+conn.on("open",()=>{
+
+document.getElementById("onlineMsg")
+.textContent=
+"🟢 Ulandi!";
+
+conn.send({
+
+type:"join",
+
+time:selectedTime
+
+});
+
+});
+
+
+conn.on("data",handleData);
+
+
+conn.on("close",()=>{
+
+gameActive=false;
+
+alert("Raqib o‘yindan chiqdi.");
+
+});
+
+});
+
+
+peer.on("error",()=>{
+
+document.getElementById("onlineMsg")
+.textContent=
+"❌ Xona topilmadi yoki ulanishda xatolik.";
+
+});
+
+}
+
+
+/* =====================================
+   ONLINE GAME
+===================================== */
+
+function startOnlineGame(){
+
+chess=new Chess();
+
+boardFlipped=false;
+
+selectedSquare=null;
+
+whiteTime=selectedTime;
+
+blackTime=selectedTime;
+
+gameActive=true;
+
+
+document.getElementById("modeLabel")
+.textContent="● ONLINE";
+
+document.getElementById("modeLabel")
+.className="online";
+
+
+showPage("game");
+
+renderBoard();
+
+updateUI();
+
+updateMoves();
+
+startTimer();
+
+
+if(isHost)
+sendState();
+
+}
+
+
+/* =====================================
+   SEND STATE
+===================================== */
+
+function sendState(){
+
+if(!conn || conn.open!==true)
+return;
+
+
+conn.send({
+
+type:"state",
+
+fen:chess.fen(),
+
+whiteTime:whiteTime,
+
+blackTime:blackTime,
+
+time:selectedTime,
+
+active:gameActive
+
+});
+
+}
+
+
+function sendClock(){
+
+if(!conn || conn.open!==true)
+return;
+
+
+conn.send({
+
+type:"clock",
+
+whiteTime:whiteTime,
+
+blackTime:blackTime,
+
+active:gameActive
+
+});
+
+}
+
+
+/* =====================================
+   RECEIVE
+===================================== */
+
+function handleData(data){
+
+if(!data)
+return;
+
+
+if(
+data.type==="join" &&
+isHost
+){
+
+selectedTime =
+data.time ||
+selectedTime;
+
+whiteTime=selectedTime;
+
+blackTime=selectedTime;
+
+startOnlineGame();
+
+sendState();
+
+return;
+
+}
+
+
+if(
+data.type==="state" &&
+!isHost
+){
+
+chess.load(data.fen);
+
+selectedTime =
+data.time ||
+selectedTime;
+
+whiteTime=data.whiteTime;
+
+blackTime=data.blackTime;
+
+gameActive=data.active;
+
+showPage("game");
+
+renderBoard();
+
+updateUI();
+
+updateMoves();
+
+startTimer();
+
+checkGameEnd();
+
+return;
+
+}
+
+
+if(data.type==="clock"){
+
+whiteTime=data.whiteTime;
+
+blackTime=data.blackTime;
+
+gameActive=data.active;
+
+updateClocks();
+
+}
+
+}
+
+
+/* =====================================
+   COPY ROOM
+===================================== */
+
+function copyRoom(){
+
+const code =
+document.getElementById("roomCode")
+.textContent;
+
+
+if(
+navigator.clipboard &&
+navigator.clipboard.writeText
+){
+
+navigator.clipboard
+.writeText(code)
+.then(()=>{
+
+document.getElementById("roomStatus")
+.textContent=
+"📋 Kod nusxalandi!";
+
+});
+
+}else{
+
+alert("Xona kodi: "+code);
+
+}
+
+}
+
+
+/* =====================================
+   CLEANUP
+===================================== */
+
+function cleanupOnline(){
+
+clearInterval(timer);
+
+
+try{
+
+if(conn)
+conn.close();
+
+}catch(e){}
+
+
+try{
+
+if(peer)
+peer.destroy();
+
+}catch(e){}
+
+
+conn=null;
+
+peer=null;
+
+roomId=null;
+
+isHost=false;
+
+myColor=null;
+
+}
+
+</script>
+
+</body>
+</html>
