@@ -1,0 +1,1502 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#111827">
+<title>UZB CHESS</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+
+<style>
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    margin: 0;
+    background:
+        radial-gradient(circle at top, #263449 0%, #111827 45%, #070b12 100%);
+    color: white;
+    font-family: Arial, sans-serif;
+    min-height: 100vh;
+}
+
+button {
+    font-family: inherit;
+}
+
+.app {
+    width: 100%;
+    max-width: 520px;
+    min-height: 100vh;
+    margin: auto;
+    padding: 18px 14px 30px;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 22px;
+}
+
+.logo {
+    font-size: 25px;
+    font-weight: 900;
+    letter-spacing: 1px;
+}
+
+.logo span {
+    color: #60a5fa;
+}
+
+.icon-btn {
+    width: 43px;
+    height: 43px;
+    border: 0;
+    border-radius: 14px;
+    background: #1e293b;
+    color: white;
+    font-size: 20px;
+}
+
+.screen {
+    display: none;
+}
+
+.screen.active {
+    display: block;
+}
+
+.hero {
+    text-align: center;
+    padding: 18px 5px 25px;
+}
+
+.hero-piece {
+    font-size: 65px;
+    filter: drop-shadow(0 8px 15px rgba(0,0,0,.4));
+}
+
+.hero h1 {
+    margin: 5px 0;
+    font-size: 36px;
+}
+
+.hero p {
+    color: #94a3b8;
+    margin: 8px 0 0;
+}
+
+.menu-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.menu-btn {
+    min-height: 82px;
+    border: 1px solid #334155;
+    border-radius: 19px;
+    background: linear-gradient(145deg,#1e293b,#172033);
+    color: white;
+    font-size: 16px;
+    font-weight: 700;
+    padding: 14px;
+    box-shadow: 0 8px 20px rgba(0,0,0,.18);
+}
+
+.menu-btn:active,
+.option:active,
+.bottom-btn:active {
+    transform: scale(.97);
+}
+
+.menu-btn .emoji {
+    display: block;
+    font-size: 28px;
+    margin-bottom: 7px;
+}
+
+.primary {
+    background: linear-gradient(135deg,#2563eb,#1d4ed8);
+    border: none;
+}
+
+.green {
+    background: linear-gradient(135deg,#059669,#047857);
+    border: none;
+}
+
+.purple {
+    background: linear-gradient(135deg,#7c3aed,#5b21b6);
+    border: none;
+}
+
+.orange {
+    background: linear-gradient(135deg,#ea580c,#c2410c);
+    border: none;
+}
+
+.card {
+    background: rgba(15,23,42,.85);
+    border: 1px solid #334155;
+    border-radius: 20px;
+    padding: 18px;
+    margin-bottom: 15px;
+}
+
+.title {
+    font-size: 25px;
+    font-weight: 800;
+    margin-bottom: 15px;
+}
+
+.subtitle {
+    color: #94a3b8;
+    margin-bottom: 18px;
+}
+
+.options {
+    display: grid;
+    gap: 10px;
+}
+
+.option {
+    width: 100%;
+    border: 1px solid #334155;
+    background: #1e293b;
+    color: white;
+    border-radius: 15px;
+    padding: 15px;
+    text-align: left;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.back {
+    width: 100%;
+    margin-top: 12px;
+    padding: 14px;
+    border: 0;
+    border-radius: 14px;
+    background: #334155;
+    color: white;
+    font-weight: 700;
+}
+
+.time-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.time {
+    text-align: center;
+}
+
+.profile {
+    text-align: center;
+}
+
+.avatar {
+    width: 82px;
+    height: 82px;
+    margin: auto;
+    border-radius: 50%;
+    background: linear-gradient(135deg,#2563eb,#7c3aed);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 38px;
+}
+
+.elo {
+    font-size: 38px;
+    font-weight: 900;
+    margin: 12px 0 4px;
+}
+
+.elo-label {
+    color: #94a3b8;
+}
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(3,1fr);
+    gap: 8px;
+    margin-top: 20px;
+}
+
+.stat {
+    background: #1e293b;
+    padding: 13px 5px;
+    border-radius: 14px;
+}
+
+.stat b {
+    display: block;
+    font-size: 20px;
+}
+
+.stat span {
+    color: #94a3b8;
+    font-size: 12px;
+}
+
+/* CHESS */
+
+.game-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.player {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.player-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    background: #334155;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.clock {
+    background: #111827;
+    border: 1px solid #334155;
+    padding: 8px 12px;
+    border-radius: 10px;
+    font-weight: 900;
+    font-size: 17px;
+}
+
+.board-wrap {
+    width: 100%;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 12px 35px rgba(0,0,0,.5);
+}
+
+.board {
+    width: 100%;
+    aspect-ratio: 1;
+    display: grid;
+    grid-template-columns: repeat(8,1fr);
+}
+
+.square {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    cursor: pointer;
+    user-select: none;
+}
+
+.light {
+    background: #e8d7b8;
+}
+
+.dark {
+    background: #769656;
+}
+
+.square.selected {
+    box-shadow: inset 0 0 0 4px #facc15;
+}
+
+.square.legal::after {
+    content: "";
+    width: 24%;
+    height: 24%;
+    border-radius: 50%;
+    background: rgba(0,0,0,.3);
+    position: absolute;
+}
+
+.square.capture::after {
+    content: "";
+    width: 70%;
+    height: 70%;
+    border-radius: 50%;
+    border: 4px solid rgba(220,38,38,.65);
+    position: absolute;
+}
+
+.piece {
+    font-size: clamp(31px,10vw,58px);
+    line-height: 1;
+    z-index: 2;
+    text-shadow: 0 2px 3px rgba(0,0,0,.4);
+}
+
+.coordinates {
+    position: absolute;
+    font-size: 9px;
+    font-weight: 800;
+    opacity: .7;
+    bottom: 3px;
+    left: 4px;
+    z-index: 3;
+}
+
+.light .coordinates {
+    color: #557044;
+}
+
+.dark .coordinates {
+    color: #e8d7b8;
+}
+
+.game-actions {
+    display: grid;
+    grid-template-columns: repeat(3,1fr);
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.game-action {
+    padding: 12px 5px;
+    border: 1px solid #334155;
+    background: #1e293b;
+    color: white;
+    border-radius: 12px;
+    font-weight: 700;
+}
+
+.move-list {
+    max-height: 130px;
+    overflow-y: auto;
+    color: #cbd5e1;
+    font-size: 14px;
+    line-height: 1.7;
+}
+
+/* LEADERBOARD */
+
+.leader {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #1e293b;
+    border-radius: 14px;
+    padding: 13px;
+    margin-bottom: 8px;
+}
+
+.position {
+    width: 32px;
+    font-weight: 900;
+    color: #facc15;
+}
+
+.leader-name {
+    flex: 1;
+}
+
+.leader-elo {
+    font-weight: 900;
+    color: #60a5fa;
+}
+
+/* BOTTOM NAV */
+
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(520px,100%);
+    padding: 10px 12px;
+    background: rgba(7,11,18,.94);
+    backdrop-filter: blur(15px);
+    border-top: 1px solid #334155;
+    display: grid;
+    grid-template-columns: repeat(4,1fr);
+    gap: 5px;
+    z-index: 20;
+}
+
+.bottom-btn {
+    background: transparent;
+    border: 0;
+    color: #64748b;
+    padding: 8px 3px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.bottom-btn.active {
+    color: white;
+    background: #1e293b;
+}
+
+.bottom-btn span {
+    display: block;
+    font-size: 22px;
+    margin-bottom: 3px;
+}
+
+.app {
+    padding-bottom: 100px;
+}
+
+.notice {
+    padding: 13px;
+    border-radius: 13px;
+    background: #172554;
+    border: 1px solid #1d4ed8;
+    color: #bfdbfe;
+    font-size: 13px;
+    margin-bottom: 15px;
+}
+
+@media(max-width:360px) {
+    .menu-grid {
+        gap: 8px;
+    }
+
+    .menu-btn {
+        min-height: 75px;
+        font-size: 14px;
+    }
+
+    .hero h1 {
+        font-size: 30px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+    <div class="header">
+        <div class="logo">♟ UZB <span>CHESS</span></div>
+        <button class="icon-btn" onclick="showScreen('profile')">👤</button>
+    </div>
+
+
+    <!-- ================= HOME ================= -->
+
+    <section id="home" class="screen active">
+
+        <div class="hero">
+            <div class="hero-piece">♟</div>
+            <h1>UZB CHESS</h1>
+            <p>Play. Think. Win.</p>
+        </div>
+
+        <div class="menu-grid">
+
+            <button class="menu-btn primary"
+                    onclick="showScreen('play')">
+                <span class="emoji">♟️</span>
+                O‘yin boshlash
+            </button>
+
+            <button class="menu-btn green"
+                    onclick="showScreen('random')">
+                <span class="emoji">🎲</span>
+                Random Player
+            </button>
+
+            <button class="menu-btn purple"
+                    onclick="showScreen('friend')">
+                <span class="emoji">👥</span>
+                Do‘st bilan
+            </button>
+
+            <button class="menu-btn orange"
+                    onclick="showScreen('computer')">
+                <span class="emoji">🤖</span>
+                Bot bilan
+            </button>
+
+            <button class="menu-btn"
+                    onclick="showScreen('leaderboard')">
+                <span class="emoji">🏆</span>
+                Reyting
+            </button>
+
+            <button class="menu-btn"
+                    onclick="showScreen('profile')">
+                <span class="emoji">👤</span>
+                Profil
+            </button>
+
+        </div>
+
+    </section>
+
+
+    <!-- ================= PLAY ================= -->
+
+    <section id="play" class="screen">
+
+        <div class="title">♟️ O‘yin rejimi</div>
+
+        <div class="subtitle">
+            Qanday o‘ynamoqchisiz?
+        </div>
+
+        <div class="options">
+
+            <button class="option"
+                    onclick="showScreen('computer')">
+                🤖 Botga qarshi
+                <small>Offline</small>
+            </button>
+
+            <button class="option"
+                    onclick="startLocalGame()">
+                👥 2 kishi
+                <small>Bir qurilmada</small>
+            </button>
+
+            <button class="option"
+                    onclick="showScreen('random')">
+                🎲 Random odam
+                <small>Online</small>
+            </button>
+
+            <button class="option"
+                    onclick="showScreen('friend')">
+                🔗 Do‘st bilan
+                <small>Room Code</small>
+            </button>
+
+        </div>
+
+        <button class="back" onclick="showScreen('home')">
+            ← Orqaga
+        </button>
+
+    </section>
+
+
+    <!-- ================= COMPUTER ================= -->
+
+    <section id="computer" class="screen">
+
+        <div class="title">🤖 Bot bilan o‘ynash</div>
+
+        <div class="subtitle">
+            Qiyinchilik darajasini tanlang.
+        </div>
+
+        <div class="options">
+
+            <button class="option"
+                    onclick="startGame('Bot — Oson')">
+                🟢 Oson
+            </button>
+
+            <button class="option"
+                    onclick="startGame('Bot — O‘rta')">
+                🟡 O‘rta
+            </button>
+
+            <button class="option"
+                    onclick="startGame('Bot — Qiyin')">
+                🔴 Qiyin
+            </button>
+
+            <button class="option"
+                    onclick="startGame('Bot — Master')">
+                💀 Master
+            </button>
+
+        </div>
+
+        <button class="back" onclick="showScreen('play')">
+            ← Orqaga
+        </button>
+
+    </section>
+
+
+    <!-- ================= RANDOM ================= -->
+
+    <section id="random" class="screen">
+
+        <div class="title">🎲 Random Player</div>
+
+        <div class="notice">
+            🌐 Keyingi bosqichda bu bo‘lim real-time server orqali
+            kutayotgan random o‘yinchini avtomatik topadi.
+        </div>
+
+        <div class="card">
+
+            <div class="subtitle">
+                O‘yin vaqtini tanlang:
+            </div>
+
+            <div class="time-grid">
+
+                <button class="option time"
+                        onclick="searchRandom('1+0')">
+                    ⚡ 1+0
+                </button>
+
+                <button class="option time"
+                        onclick="searchRandom('3+0')">
+                    🔥 3+0
+                </button>
+
+                <button class="option time"
+                        onclick="searchRandom('5+0')">
+                    🎯 5+0
+                </button>
+
+                <button class="option time"
+                        onclick="searchRandom('10+0')">
+                    🧠 10+0
+                </button>
+
+                <button class="option time"
+                        onclick="searchRandom('15+10')">
+                    ♟️ 15+10
+                </button>
+
+                <button class="option time"
+                        onclick="searchRandom('∞')">
+                    ♾️ Unlimited
+                </button>
+
+            </div>
+
+        </div>
+
+        <button class="back" onclick="showScreen('home')">
+            ← Orqaga
+        </button>
+
+    </section>
+
+
+    <!-- ================= FRIEND ================= -->
+
+    <section id="friend" class="screen">
+
+        <div class="title">👥 Do‘st bilan</div>
+
+        <div class="options">
+
+            <button class="option"
+                    onclick="createRoom()">
+                ➕ Xona yaratish
+            </button>
+
+            <button class="option"
+                    onclick="joinRoom()">
+                🔗 Room Code orqali kirish
+            </button>
+
+        </div>
+
+        <div id="roomResult"></div>
+
+        <button class="back" onclick="showScreen('home')">
+            ← Orqaga
+        </button>
+
+    </section>
+
+
+    <!-- ================= PROFILE ================= -->
+
+    <section id="profile" class="screen">
+
+        <div class="card profile">
+
+            <div class="avatar">♟️</div>
+
+            <h2>UZB CHESS Player</h2>
+
+            <div class="elo">1200</div>
+            <div class="elo-label">ELO Rating</div>
+
+            <div class="stats">
+
+                <div class="stat">
+                    <b>0</b>
+                    <span>G‘alaba</span>
+                </div>
+
+                <div class="stat">
+                    <b>0</b>
+                    <span>Durang</span>
+                </div>
+
+                <div class="stat">
+                    <b>0</b>
+                    <span>Mag‘lubiyat</span>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="card">
+
+            <div class="title">📊 Statistika</div>
+
+            <p>🏆 Best ELO: <b>1200</b></p>
+            <p>♟️ O‘yinlar: <b>0</b></p>
+            <p>⏱️ Online vaqt: <b>0 soat</b></p>
+
+        </div>
+
+        <button class="back" onclick="showScreen('home')">
+            ← Orqaga
+        </button>
+
+    </section>
+
+
+    <!-- ================= LEADERBOARD ================= -->
+
+    <section id="leaderboard" class="screen">
+
+        <div class="title">🏆 Reyting</div>
+
+        <div class="subtitle">
+            UZB CHESS Leaderboard
+        </div>
+
+        <div class="leader">
+            <div class="position">1</div>
+            <div class="leader-name">👑 Player</div>
+            <div class="leader-elo">1850</div>
+        </div>
+
+        <div class="leader">
+            <div class="position">2</div>
+            <div class="leader-name">🥈 ChessMaster</div>
+            <div class="leader-elo">1790</div>
+        </div>
+
+        <div class="leader">
+            <div class="position">3</div>
+            <div class="leader-name">🥉 UZB Player</div>
+            <div class="leader-elo">1740</div>
+        </div>
+
+        <div class="leader">
+            <div class="position">4</div>
+            <div class="leader-name">♟️ Player4</div>
+            <div class="leader-elo">1680</div>
+        </div>
+
+        <div class="leader">
+            <div class="position">5</div>
+            <div class="leader-name">♟️ Player5</div>
+            <div class="leader-elo">1620</div>
+        </div>
+
+        <button class="back" onclick="showScreen('home')">
+            ← Orqaga
+        </button>
+
+    </section>
+
+
+    <!-- ================= GAME ================= -->
+
+    <section id="game" class="screen">
+
+        <div class="game-top">
+
+            <div class="player">
+                <div class="player-icon">♟️</div>
+                <div>
+                    <b id="opponentName">Opponent</b>
+                    <div style="color:#94a3b8;font-size:12px">
+                        ELO 1200
+                    </div>
+                </div>
+            </div>
+
+            <div class="clock" id="blackClock">
+                10:00
+            </div>
+
+        </div>
+
+
+        <div class="board-wrap">
+            <div id="board" class="board"></div>
+        </div>
+
+
+        <div class="game-top" style="margin-top:10px">
+
+            <div class="player">
+                <div class="player-icon">👤</div>
+                <div>
+                    <b>You</b>
+                    <div style="color:#94a3b8;font-size:12px">
+                        ELO 1200
+                    </div>
+                </div>
+            </div>
+
+            <div class="clock" id="whiteClock">
+                10:00
+            </div>
+
+        </div>
+
+
+        <div class="game-actions">
+
+            <button class="game-action"
+                    onclick="flipBoard()">
+                🔄 Taxta
+            </button>
+
+            <button class="game-action"
+                    onclick="showMoves()">
+                📜 Yurishlar
+            </button>
+
+            <button class="game-action"
+                    onclick="exitGame()">
+                🚪 Chiqish
+            </button>
+
+        </div>
+
+        <div id="moves" class="card move-list"
+             style="display:none;margin-top:12px">
+        </div>
+
+    </section>
+
+
+    <!-- ================= SETTINGS ================= -->
+
+    <section id="settings" class="screen">
+
+        <div class="title">⚙️ Sozlamalar</div>
+
+        <div class="options">
+
+            <button class="option">
+                🔊 Ovoz
+            </button>
+
+            <button class="option">
+                🌙 Dark Mode
+            </button>
+
+            <button class="option">
+                📱 Vibratsiya
+            </button>
+
+            <button class="option">
+                🎨 Taxta dizayni
+            </button>
+
+        </div>
+
+        <button class="back" onclick="showScreen('home')">
+            ← Orqaga
+        </button>
+
+    </section>
+
+
+    <!-- ================= BOTTOM NAV ================= -->
+
+    <nav class="bottom-nav">
+
+        <button class="bottom-btn active"
+                onclick="showScreen('home');setActive(this)">
+            <span>🏠</span>
+            Bosh sahifa
+        </button>
+
+        <button class="bottom-btn"
+                onclick="showScreen('play');setActive(this)">
+            <span>♟️</span>
+            O‘yin
+        </button>
+
+        <button class="bottom-btn"
+                onclick="showScreen('leaderboard');setActive(this)">
+            <span>🏆</span>
+            Reyting
+        </button>
+
+        <button class="bottom-btn"
+                onclick="showScreen('profile');setActive(this)">
+            <span>👤</span>
+            Profil
+        </button>
+
+    </nav>
+
+</div>
+
+
+<script>
+
+/* ==========================================
+   SCREEN SYSTEM
+========================================== */
+
+function showScreen(id) {
+
+    document.querySelectorAll(".screen")
+        .forEach(s => s.classList.remove("active"));
+
+    const screen = document.getElementById(id);
+
+    if (screen) {
+        screen.classList.add("active");
+    }
+
+    window.scrollTo(0,0);
+}
+
+
+function setActive(btn) {
+
+    document.querySelectorAll(".bottom-btn")
+        .forEach(b => b.classList.remove("active"));
+
+    btn.classList.add("active");
+}
+
+
+/* ==========================================
+   CHESS ENGINE
+========================================== */
+
+let chess = new Chess();
+
+let selectedSquare = null;
+let flipped = false;
+
+let gameStarted = false;
+
+let whiteTime = 600;
+let blackTime = 600;
+
+let timer = null;
+
+let localMode = false;
+
+
+/* ==========================================
+   PIECES
+========================================== */
+
+const pieces = {
+
+    wK:"♔",
+    wQ:"♕",
+    wR:"♖",
+    wB:"♗",
+    wN:"♘",
+    wP:"♙",
+
+    bK:"♚",
+    bQ:"♛",
+    bR:"♜",
+    bB:"♝",
+    bN:"♞",
+    bP:"♟"
+};
+
+
+/* ==========================================
+   START GAME
+========================================== */
+
+function startGame(opponent="Bot") {
+
+    chess.reset();
+
+    selectedSquare = null;
+
+    gameStarted = true;
+
+    whiteTime = 600;
+    blackTime = 600;
+
+    document.getElementById("opponentName").innerText =
+        opponent;
+
+    showScreen("game");
+
+    renderBoard();
+
+    startTimer();
+}
+
+
+/* ==========================================
+   LOCAL 2 PLAYER
+========================================== */
+
+function startLocalGame() {
+
+    localMode = true;
+
+    startGame("Local Player");
+
+}
+
+
+/* ==========================================
+   BOARD
+========================================== */
+
+function renderBoard() {
+
+    const board = document.getElementById("board");
+
+    board.innerHTML = "";
+
+    let position = chess.board();
+
+    if (flipped) {
+        position = position.slice().reverse()
+            .map(row => row.slice().reverse());
+    }
+
+    position.forEach((row, rowIndex) => {
+
+        row.forEach((piece, colIndex) => {
+
+            let realRow = flipped ? 7-rowIndex : rowIndex;
+            let realCol = flipped ? 7-colIndex : colIndex;
+
+            const squareName =
+                "abcdefgh"[realCol] +
+                (8-realRow);
+
+            const square =
+                document.createElement("div");
+
+            square.className =
+                "square " +
+                ((realRow+realCol)%2 === 0
+                    ? "light"
+                    : "dark");
+
+            square.dataset.square = squareName;
+
+            if (selectedSquare === squareName) {
+                square.classList.add("selected");
+            }
+
+            if (selectedSquare) {
+
+                const moves =
+                    chess.moves({
+                        square:selectedSquare,
+                        verbose:true
+                    });
+
+                const possible =
+                    moves.find(
+                        m => m.to === squareName
+                    );
+
+                if (possible) {
+
+                    if (piece) {
+                        square.classList.add("capture");
+                    } else {
+                        square.classList.add("legal");
+                    }
+                }
+            }
+
+            if (piece) {
+
+                const color =
+                    piece.color === "w" ? "w" : "b";
+
+                const key =
+                    color + piece.type.toUpperCase();
+
+                const span =
+                    document.createElement("span");
+
+                span.className = "piece";
+
+                span.innerText =
+                    pieces[key];
+
+                square.appendChild(span);
+            }
+
+            if (realCol === 0) {
+
+                const coordinate =
+                    document.createElement("span");
+
+                coordinate.className =
+                    "coordinates";
+
+                coordinate.innerText =
+                    8-realRow;
+
+                square.appendChild(coordinate);
+            }
+
+            square.onclick =
+                () => handleSquare(squareName);
+
+            board.appendChild(square);
+        });
+    });
+}
+
+
+/* ==========================================
+   SQUARE CLICK
+========================================== */
+
+function handleSquare(square) {
+
+    if (!gameStarted) return;
+
+    const piece =
+        chess.get(square);
+
+    if (!selectedSquare) {
+
+        if (!piece) return;
+
+        selectedSquare = square;
+
+        renderBoard();
+
+        return;
+    }
+
+
+    /* Same piece / another own piece */
+
+    if (piece && piece.color === chess.turn()) {
+
+        selectedSquare = square;
+
+        renderBoard();
+
+        return;
+    }
+
+
+    /* Try move */
+
+    const move = chess.move({
+        from:selectedSquare,
+        to:square,
+        promotion:"q"
+    });
+
+
+    if (move) {
+
+        selectedSquare = null;
+
+        renderBoard();
+
+        updateMoves();
+
+        checkGameState();
+
+    } else {
+
+        selectedSquare = null;
+
+        renderBoard();
+    }
+}
+
+
+/* ==========================================
+   GAME STATE
+========================================== */
+
+function checkGameState() {
+
+    if (chess.game_over()) {
+
+        clearInterval(timer);
+
+        let result = "♟️ O‘yin tugadi";
+
+        if (chess.in_checkmate()) {
+            result += "\n\n🏆 Checkmate!";
+        }
+        else if (chess.in_stalemate()) {
+            result += "\n\n🤝 Stalemate — durang";
+        }
+        else if (chess.in_threefold_repetition()) {
+            result += "\n\n🤝 Threefold repetition — durang";
+        }
+        else if (chess.insufficient_material()) {
+            result += "\n\n🤝 Yetarli material yo‘q — durang";
+        }
+
+        setTimeout(() => {
+            alert(result);
+        },100);
+
+    } else if (chess.in_check()) {
+
+        // Check holati
+        console.log("Check!");
+    }
+}
+
+
+/* ==========================================
+   MOVES
+========================================== */
+
+function updateMoves() {
+
+    const history =
+        chess.history();
+
+    const box =
+        document.getElementById("moves");
+
+    let text = "";
+
+    history.forEach((move,index) => {
+
+        if (index % 2 === 0) {
+            text +=
+                `<b>${Math.floor(index/2)+1}.</b> `;
+        }
+
+        text += move + " ";
+
+        if (index % 2 === 1) {
+            text += "<br>";
+        }
+    });
+
+    box.innerHTML = text;
+}
+
+
+function showMoves() {
+
+    const box =
+        document.getElementById("moves");
+
+    box.style.display =
+        box.style.display === "none"
+        ? "block"
+        : "none";
+}
+
+
+/* ==========================================
+   FLIP BOARD
+========================================== */
+
+function flipBoard() {
+
+    flipped = !flipped;
+
+    renderBoard();
+}
+
+
+/* ==========================================
+   TIMER
+========================================== */
+
+function startTimer() {
+
+    clearInterval(timer);
+
+    timer = setInterval(() => {
+
+        if (!gameStarted) return;
+
+        if (chess.turn() === "w") {
+
+            whiteTime--;
+
+        } else {
+
+            blackTime--;
+        }
+
+        updateClock();
+
+        if (whiteTime <= 0) {
+
+            clearInterval(timer);
+
+            alert("⏰ White vaqt tugadi!");
+
+            gameStarted = false;
+        }
+
+        if (blackTime <= 0) {
+
+            clearInterval(timer);
+
+            alert("⏰ Black vaqt tugadi!");
+
+            gameStarted = false;
+        }
+
+    },1000);
+}
+
+
+function formatTime(seconds) {
+
+    if (seconds < 0) seconds = 0;
+
+    let min =
+        Math.floor(seconds/60);
+
+    let sec =
+        seconds%60;
+
+    return (
+        String(min).padStart(2,"0")
+        + ":" +
+        String(sec).padStart(2,"0")
+    );
+}
+
+
+function updateClock() {
+
+    document.getElementById("whiteClock")
+        .innerText =
+        formatTime(whiteTime);
+
+    document.getElementById("blackClock")
+        .innerText =
+        formatTime(blackTime);
+}
+
+
+/* ==========================================
+   EXIT
+========================================== */
+
+function exitGame() {
+
+    clearInterval(timer);
+
+    gameStarted = false;
+
+    chess.reset();
+
+    selectedSquare = null;
+
+    showScreen("home");
+
+}
+
+
+/* ==========================================
+   RANDOM
+========================================== */
+
+function searchRandom(time) {
+
+    alert(
+        "🎲 Random Player\n\n" +
+        "⏱️ Rejim: " + time +
+        "\n\n" +
+        "🌐 Online matchmaking keyingi bosqichda ulanadi."
+    );
+}
+
+
+/* ==========================================
+   ROOM
+========================================== */
+
+function createRoom() {
+
+    const code =
+        Math.random()
+        .toString(36)
+        .substring(2,8)
+        .toUpperCase();
+
+    document.getElementById("roomResult")
+        .innerHTML = `
+        <div class="card" style="margin-top:15px;text-align:center">
+            <div style="color:#94a3b8">
+                Sizning Room Code
+            </div>
+
+            <div style="
+                font-size:32px;
+                font-weight:900;
+                margin:10px;
+                color:#60a5fa;
+            ">
+                ${code}
+            </div>
+
+            <div style="color:#94a3b8">
+                Do‘stingiz shu kod orqali qo‘shiladi.
+            </div>
+        </div>
+        `;
+
+}
+
+
+function joinRoom() {
+
+    const code =
+        prompt("Room Code kiriting:");
+
+    if (!code) return;
+
+    alert(
+        "🔗 Room Code: " +
+        code +
+        "\n\nOnline server keyingi bosqichda ulanadi."
+    );
+}
+
+
+/* ==========================================
+   INITIAL
+========================================== */
+
+renderBoard();
+
+</script>
+
+</body>
+</html>
